@@ -93,6 +93,10 @@ For Microsoft 365 Copilot integration, this should be:
 <li><b>teacher.read teacher.write</b> for the teacher OAuth2 client</li>
 <li><b>student.read student.write</b> for the student OAuth2 client</li>
 </ul>';
+$string['oauth_require_pkce'] = 'Require PKCE';
+$string['oauth_require_pkce_help'] = 'Require PKCE (Proof Key for Code Exchange) for this client. PKCE provides additional security against authorization code interception attacks. Recommended for public clients such as mobile apps and single-page applications.';
+$string['oauth_generate_secret'] = 'Generate client secret';
+$string['oauth_generate_secret_help'] = 'Generate a client secret for this registration. Uncheck this to create a public client without a secret. Public clients must have PKCE enabled.';
 $string['actions'] = 'Actions';
 $string['oauth_client_not_exists'] = 'Oauth client does not exist';
 $string['oauth_client_id_cannot_contain_space'] = 'Client ID cannot contain space';

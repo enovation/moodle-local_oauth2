@@ -82,6 +82,28 @@ class oauth_client_form extends moodleform {
         }
         $mform->addElement('static', 'scope_help', '', $scopehelptext);
 
+        // Require PKCE.
+        $mform->addElement('advcheckbox', 'require_pkce', get_string('oauth_require_pkce', 'local_oauth2'));
+        $mform->setType('require_pkce', PARAM_INT);
+        $mform->setDefault('require_pkce', 0);
+        $mform->addElement('static', 'require_pkce_help', '', get_string('oauth_require_pkce_help', 'local_oauth2'));
+
+        // Freeze require_pkce when editing - cannot be changed after creation.
+        if ($action === 'edit') {
+            $mform->freeze('require_pkce');
+        }
+
+        // Generate client secret - only shown when creating a new client.
+        if ($action !== 'edit') {
+            $mform->addElement('advcheckbox', 'generate_secret', get_string('oauth_generate_secret', 'local_oauth2'));
+            $mform->setType('generate_secret', PARAM_INT);
+            $mform->setDefault('generate_secret', 1);
+            $mform->addElement('static', 'generate_secret_help', '', get_string('oauth_generate_secret_help', 'local_oauth2'));
+
+            // Disable generate_secret unless require_pkce is enabled.
+            $mform->disabledIf('generate_secret', 'require_pkce', 'eq', 0);
+        }
+
         // Action buttons.
         $this->add_action_buttons();
     }

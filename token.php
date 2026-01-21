@@ -38,13 +38,13 @@ $server = local_oauth2\utils::get_oauth_server();
 $request = Request::createFromGlobals();
 $response = new OAuth2\Response();
 
-// Debug: log the request details
-error_log('OAuth2 Request scope: ' . $request->request('scope'));
-error_log('OAuth2 Request grant_type: ' . $request->request('grant_type'));
+// Debug: log the request details.
+debugging('OAuth2 Request scope: ' . $request->request('scope'), DEBUG_DEVELOPER);
+debugging('OAuth2 Request grant_type: ' . $request->request('grant_type'), DEBUG_DEVELOPER);
 
 $server->handleTokenRequest($request, $response);
 
-// Debug: log the response details
-error_log('OAuth2 Response: ' . $response->getStatusCode() . ' - ' . json_encode($response->getParameters()));
+// Debug: log the response details.
+debugging('OAuth2 Response: ' . $response->getStatusCode() . ' - ' . json_encode($response->getParameters()), DEBUG_DEVELOPER);
 
 $response->send();
