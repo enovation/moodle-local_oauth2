@@ -66,7 +66,6 @@ class oauth_client_form extends moodleform {
         // Redirect URI.
         $mform->addElement('text', 'redirect_uri', get_string('oauth_redirect_uri', 'local_oauth2'), ['size' => 80]);
         $mform->setType('redirect_uri', PARAM_URL);
-        $mform->addRule('redirect_uri', get_string('required'), 'required');
         $mform->setDefault('redirect_uri', 'https://teams.microsoft.com/api/platform/v1.0/oAuthRedirect');
         $redirecturihelptext = get_string('oauth_redirect_uri_help', 'local_oauth2');
         if (utils::is_local_copilot_installed()) {

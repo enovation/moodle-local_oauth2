@@ -35,4 +35,16 @@ manager::write_close();
 
 $server = local_oauth2\utils::get_oauth_server();
 
-$server->handleTokenRequest(Request::createFromGlobals())->send();
+$request = Request::createFromGlobals();
+$response = new OAuth2\Response();
+
+// Debug: log the request details
+error_log('OAuth2 Request scope: ' . $request->request('scope'));
+error_log('OAuth2 Request grant_type: ' . $request->request('grant_type'));
+
+$server->handleTokenRequest($request, $response);
+
+// Debug: log the response details
+error_log('OAuth2 Response: ' . $response->getStatusCode() . ' - ' . json_encode($response->getParameters()));
+
+$response->send();
