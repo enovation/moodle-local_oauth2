@@ -69,9 +69,16 @@ switch ($action) {
             }
             $clientrecord->redirect_uri = $fromform->redirect_uri;
             $clientrecord->scope = $fromform->scope;
+            $clientrecord->require_pkce = $fromform->require_pkce;
 
             if (!isset($clientrecordtoedit)) {
-                $clientrecord->client_secret = utils::generate_secret();
+                // Generate secret unless PKCE is enabled and user opted out.
+                // If PKCE is not enabled, always generate a secret.
+                if (empty($fromform->require_pkce) || !empty($fromform->generate_secret)) {
+                    $clientrecord->client_secret = utils::generate_secret();
+                } else {
+                    $clientrecord->client_secret = '';
+                }
 
                 if (!$clientrecord->id = $DB->insert_record('local_oauth2_client', $clientrecord)) {
                     throw new moodle_exception('error_creating_oauth_client', 'local_oauth2');
@@ -94,12 +101,14 @@ switch ($action) {
             $formdata->client_id = $clientrecordtoedit->client_id;
             $formdata->redirect_uri = $clientrecordtoedit->redirect_uri;
             $formdata->scope = $clientrecordtoedit->scope;
+            $formdata->require_pkce = $clientrecordtoedit->require_pkce;
             $formdata->action = 'edit';
         } else {
             $formdata = new stdClass();
             $formdata->client_id = '';
             $formdata->redirect_uri = '';
             $formdata->scope = '';
+            $formdata->require_pkce = 0;
             $formdata->action = 'add';
         }
         $form->set_data($formdata);

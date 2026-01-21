@@ -83,6 +83,12 @@ class moodle_oauth_storage implements
         global $DB;
 
         $clientsecretfield = $DB->get_field('local_oauth2_client', 'client_secret', ['client_id' => $clientid]);
+
+        // Handle public clients (empty secret).
+        if (empty($clientsecretfield) && empty($clientsecret)) {
+            return true;
+        }
+
         return $clientsecretfield === $clientsecret;
     }
 
@@ -287,6 +293,8 @@ class moodle_oauth_storage implements
             $authcode->redirect_uri = $redirecturi;
             $authcode->expires = $expires;
             $authcode->scope = $scope;
+            $authcode->code_challenge = $codechallenge;
+            $authcode->code_challenge_method = $codechallengemethod;
 
             $DB->update_record('local_oauth2_authorization_code', $authcode);
         } else {
@@ -297,6 +305,8 @@ class moodle_oauth_storage implements
             $authcode->redirect_uri = $redirecturi;
             $authcode->expires = $expires;
             $authcode->scope = $scope;
+            $authcode->code_challenge = $codechallenge;
+            $authcode->code_challenge_method = $codechallengemethod;
 
             $DB->insert_record('local_oauth2_authorization_code', $authcode);
         }
@@ -313,13 +323,13 @@ class moodle_oauth_storage implements
      * @param string $redirecturi
      * @param int $expires
      * @param string|null $scope
+     * @param string|null $idtoken
      * @param string|null $codechallenge
      * @param string|null $codechallengemethod
-     * @param string|null $idtoken
      * @return bool
      */
     private function setAuthorizationCodeWithIdToken($code, $clientid, $userid, $redirecturi, $expires, $scope = null,
-        $codechallenge = null, $codechallengemethod = null, $idtoken = null) {
+        $idtoken = null, $codechallenge = null, $codechallengemethod = null) {
         global $DB;
 
         if ($authcode = $DB->get_record('local_oauth2_authorization_code', ['authorization_code' => $code])) {
@@ -329,6 +339,8 @@ class moodle_oauth_storage implements
             $authcode->expires = $expires;
             $authcode->scope = $scope;
             $authcode->id_token = $idtoken;
+            $authcode->code_challenge = $codechallenge;
+            $authcode->code_challenge_method = $codechallengemethod;
 
             $DB->update_record('local_oauth2_authorization_code', $authcode);
         } else {
@@ -340,6 +352,8 @@ class moodle_oauth_storage implements
             $authcode->expires = $expires;
             $authcode->scope = $scope;
             $authcode->id_token = $idtoken;
+            $authcode->code_challenge = $codechallenge;
+            $authcode->code_challenge_method = $codechallengemethod;
 
             $DB->insert_record('local_oauth2_authorization_code', $authcode);
         }

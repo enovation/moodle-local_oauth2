@@ -74,7 +74,11 @@ class utils {
         $storage = new moodle_oauth_storage([]);
 
         // Pass a storage object or array of storage objects to the OAuth2 server class.
-        $server = new Server($storage);
+        // Enable OpenID Connect mode to use the AuthorizeController that supports PKCE.
+        $server = new Server($storage, [
+            'use_openid_connect' => true,
+            'issuer' => $CFG->wwwroot,
+        ]);
         $server->setConfig('enforce_state', false);
 
         // Set access token lifetime.
@@ -112,16 +116,17 @@ class utils {
      * @param string $url The URL.
      * @param string $clientid The client ID.
      * @param string $scope The scope.
+     * @param array $customdata Additional data to pass to the form.
      * @return bool
      */
-    public static function get_authorization_from_form($url, $clientid, $scope = false): bool {
+    public static function get_authorization_from_form($url, $clientid, $scope = false, $customdata = []): bool {
         global $OUTPUT, $USER;
 
         if (static::is_scope_authorized_by_user($USER->id, $clientid, $scope)) {
             return true;
         }
 
-        $form = new authorize_form($url);
+        $form = new authorize_form($url, $customdata);
         if ($form->is_cancelled()) {
             return false;
         }
@@ -183,5 +188,22 @@ class utils {
         $pluginversion = $DB->get_field('config_plugins', 'value', ['plugin' => 'local_copilot', 'name' => 'version']);
 
         return $fileexist && $pluginversion;
+    }
+
+    /**
+     * Check if PKCE is required for a given client.
+     *
+     * @param string $clientid The client ID.
+     * @return bool True if PKCE is required.
+     */
+    public static function is_pkce_required($clientid): bool {
+        global $DB;
+
+        $client = $DB->get_record('local_oauth2_client', ['client_id' => $clientid]);
+        if ($client && !empty($client->require_pkce)) {
+            return true;
+        }
+
+        return false;
     }
 }
