@@ -30,6 +30,7 @@ use local_oauth2\form\authorize_form;
 use OAuth2\Autoloader;
 use OAuth2\GrantType\AuthorizationCode;
 use OAuth2\GrantType\RefreshToken;
+use OAuth2\GrantType\UserCredentials;
 use OAuth2\Server;
 use stdClass;
 
@@ -92,6 +93,9 @@ class utils {
 
         // Add the "Authorization Code" grant type.
         $server->addGrantType(new AuthorizationCode($storage));
+
+        // Add the "Password" grant type (Resource Owner Password Credentials).
+        $server->addGrantType(new UserCredentials($storage));
 
         // Add the "Refresh Token" grant type.
         $server->addGrantType(new RefreshToken($storage, [

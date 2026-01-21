@@ -367,12 +367,13 @@ class moodle_oauth_storage implements
      *
      * @param string $username
      * @param string $password
-     * @return void
+     * @return bool
      */
     public function checkUserCredentials($username, $password) {
         if ($user = $this->getUser($username)) {
             return $this->checkPassword($user, $password);
         }
+        return false;
     }
 
     /**
@@ -524,7 +525,7 @@ class moodle_oauth_storage implements
 
         if ($userrecord = $DB->get_record('user', ['username' => $username])) {
             $userrecord = (array)$userrecord;
-            $userrecord['user_id'] = $username;
+            $userrecord['user_id'] = $userrecord['id'];
 
             return $userrecord;
         } else {
