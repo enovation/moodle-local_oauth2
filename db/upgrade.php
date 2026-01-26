@@ -63,5 +63,69 @@ function xmldb_local_oauth2_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024100703, 'local', 'oauth2');
     }
 
+    if ($oldversion < 2024100704) {
+        // Add default OpenID Connect scopes.
+        $defaultscopes = [
+            ['scope' => 'openid', 'is_default' => 1],
+            ['scope' => 'profile', 'is_default' => 0],
+            ['scope' => 'email', 'is_default' => 0],
+            ['scope' => 'address', 'is_default' => 0],
+            ['scope' => 'phone', 'is_default' => 0],
+        ];
+
+        foreach ($defaultscopes as $scopedata) {
+            if (!$DB->record_exists('local_oauth2_scope', ['scope' => $scopedata['scope']])) {
+                $record = (object) $scopedata;
+                $DB->insert_record('local_oauth2_scope', $record);
+            }
+        }
+
+        upgrade_plugin_savepoint(true, 2024100704, 'local', 'oauth2');
+    }
+
+    if ($oldversion < 2024100705) {
+        // Change public_key and private_key columns from CHAR to TEXT to accommodate RSA keys.
+        $table = new xmldb_table('local_oauth2_public_key');
+
+        // Change public_key from CHAR(1333) to TEXT.
+        $field = new xmldb_field('public_key', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null, 'client_id');
+        $dbman->change_field_type($table, $field);
+
+        // Change private_key from CHAR(1333) to TEXT.
+        $field = new xmldb_field('private_key', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null, 'public_key');
+        $dbman->change_field_type($table, $field);
+
+        // Generate RSA key pair for OpenID Connect ID token signing.
+        // Use empty string for client_id to represent default keys for all clients.
+        if (!$DB->record_exists('local_oauth2_public_key', ['client_id' => ''])) {
+            $config = [
+                'private_key_bits' => 2048,
+                'private_key_type' => OPENSSL_KEYTYPE_RSA,
+            ];
+
+            // Generate RSA key pair.
+            $res = openssl_pkey_new($config);
+            if ($res !== false) {
+                // Extract private key.
+                openssl_pkey_export($res, $privatekey);
+
+                // Extract public key.
+                $publickey = openssl_pkey_get_details($res);
+                $publickey = $publickey['key'];
+
+                // Store keys in database with empty client_id (default keys for all clients).
+                $record = new stdClass();
+                $record->client_id = '';
+                $record->public_key = $publickey;
+                $record->private_key = $privatekey;
+                $record->encryption_algorithm = 'RS256';
+
+                $DB->insert_record('local_oauth2_public_key', $record);
+            }
+        }
+
+        upgrade_plugin_savepoint(true, 2024100705, 'local', 'oauth2');
+    }
+
     return true;
 }

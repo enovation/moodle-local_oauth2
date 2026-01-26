@@ -57,6 +57,32 @@ class moodle_oauth_storage implements
     PublicKeyInterface,
     UserClaimsInterface,
     OpenIDAuthorizationCodeInterface {
+
+    /**
+     * Valid OpenID Connect scopes.
+     */
+    const VALID_CLAIMS = 'profile email address phone';
+
+    /**
+     * OpenID Connect profile claim values mapped to Moodle user fields.
+     */
+    const PROFILE_CLAIM_VALUES = 'name family_name given_name middle_name nickname preferred_username profile picture website gender birthdate zoneinfo locale updated_at';
+
+    /**
+     * OpenID Connect email claim values mapped to Moodle user fields.
+     */
+    const EMAIL_CLAIM_VALUES = 'email email_verified';
+
+    /**
+     * OpenID Connect address claim values mapped to Moodle user fields.
+     */
+    const ADDRESS_CLAIM_VALUES = 'formatted street_address locality region postal_code country';
+
+    /**
+     * OpenID Connect phone claim values mapped to Moodle user fields.
+     */
+    const PHONE_CLAIM_VALUES = 'phone_number phone_number_verified';
+
     /**
      * @var array config
      */
@@ -405,12 +431,19 @@ class moodle_oauth_storage implements
      *
      * @param int $userid
      * @param string $claims
-     * @return array|false
+     * @return array
      */
     public function getUserClaims($userid, $claims) {
-        if (!$userdetails = $this->getUserDetails($userid)) {
-            return false;
+        global $DB;
+
+        // Get user by ID (not username).
+        $userrecord = $DB->get_record('user', ['id' => $userid]);
+        if (!$userrecord) {
+            return [];
         }
+
+        $userdetails = (array)$userrecord;
+        $userdetails['user_id'] = $userdetails['id'];
 
         $claims = explode(' ', $claims);
         $userclaims = [];
@@ -432,17 +465,105 @@ class moodle_oauth_storage implements
     /**
      * Get user claim values.
      *
-     * @param string $claim
-     * @param array $userdetails
-     * @return array
+     * Maps Moodle user fields to OpenID Connect claim values.
+     *
+     * @param string $claim The claim type (profile, email, address, phone)
+     * @param array $userdetails Moodle user record as array
+     * @return array Array of claim values
      */
     protected function getUserClaim($claim, $userdetails) {
+        global $CFG;
+
         $userclaims = [];
         $claimvaluesstring = constant(sprintf('self::%s_CLAIM_VALUES', strtoupper($claim)));
         $claimvalues = explode(' ', $claimvaluesstring);
 
         foreach ($claimvalues as $claimvalue) {
-            $userclaims[$claimvalue] = $userdetails[$claimvalue] ?? null;
+            // Map OpenID Connect claims to Moodle user fields.
+            switch ($claimvalue) {
+                case 'name':
+                    $userclaims[$claimvalue] = fullname((object)$userdetails);
+                    break;
+                case 'given_name':
+                    $userclaims[$claimvalue] = $userdetails['firstname'] ?? null;
+                    break;
+                case 'family_name':
+                    $userclaims[$claimvalue] = $userdetails['lastname'] ?? null;
+                    break;
+                case 'middle_name':
+                    $userclaims[$claimvalue] = $userdetails['middlename'] ?? null;
+                    break;
+                case 'nickname':
+                    $userclaims[$claimvalue] = $userdetails['alternatename'] ?? null;
+                    break;
+                case 'preferred_username':
+                    $userclaims[$claimvalue] = $userdetails['username'] ?? null;
+                    break;
+                case 'profile':
+                    if (!empty($userdetails['id'])) {
+                        $userclaims[$claimvalue] = $CFG->wwwroot . '/user/profile.php?id=' . $userdetails['id'];
+                    }
+                    break;
+                case 'picture':
+                    if (!empty($userdetails['id'])) {
+                        global $PAGE;
+                        $userpicture = new \user_picture((object)$userdetails);
+                        $userpicture->size = 1; // Large size.
+                        $userclaims[$claimvalue] = $userpicture->get_url($PAGE)->out(false);
+                    }
+                    break;
+                case 'email':
+                    $userclaims[$claimvalue] = $userdetails['email'] ?? null;
+                    break;
+                case 'email_verified':
+                    // Email is verified if emailstop is 0 (not bouncing).
+                    $userclaims[$claimvalue] = isset($userdetails['emailstop']) ? ($userdetails['emailstop'] == 0) : false;
+                    break;
+                case 'gender':
+                    // Moodle doesn't have a standard gender field, return null.
+                    $userclaims[$claimvalue] = null;
+                    break;
+                case 'birthdate':
+                    // Moodle doesn't have a standard birthdate field, return null.
+                    $userclaims[$claimvalue] = null;
+                    break;
+                case 'zoneinfo':
+                    $userclaims[$claimvalue] = $userdetails['timezone'] ?? null;
+                    break;
+                case 'locale':
+                    $userclaims[$claimvalue] = $userdetails['lang'] ?? null;
+                    break;
+                case 'updated_at':
+                    // Return timestamp of last modification.
+                    $userclaims[$claimvalue] = isset($userdetails['timemodified']) ? (int)$userdetails['timemodified'] : null;
+                    break;
+                case 'website':
+                    $userclaims[$claimvalue] = $userdetails['url'] ?? null;
+                    break;
+                case 'phone_number':
+                    $userclaims[$claimvalue] = $userdetails['phone1'] ?? $userdetails['phone2'] ?? null;
+                    break;
+                case 'phone_number_verified':
+                    // Moodle doesn't verify phone numbers, return false.
+                    $userclaims[$claimvalue] = false;
+                    break;
+                case 'formatted':
+                case 'street_address':
+                case 'locality':
+                case 'region':
+                case 'postal_code':
+                case 'country':
+                    // Map address fields if available.
+                    $userclaims[$claimvalue] = $userdetails['address'] ?? $userdetails['city'] ?? $userdetails['country'] ?? null;
+                    if ($claimvalue === 'country') {
+                        $userclaims[$claimvalue] = $userdetails['country'] ?? null;
+                    }
+                    break;
+                default:
+                    // For any other claims, try direct mapping.
+                    $userclaims[$claimvalue] = $userdetails[$claimvalue] ?? null;
+                    break;
+            }
         }
 
         return $userclaims;
@@ -687,8 +808,16 @@ class moodle_oauth_storage implements
     public function getPublicKey($clientid = null) {
         global $DB;
 
-        return $DB->get_field_select('local_oauth2_jwt', 'public_key', 'client_id = :client_id OR client_id IS NULL',
-            ['client_id' => $clientid], 'client_id IS NOT NULL DESC');
+        // First try to get client-specific key, then fall back to default (empty string).
+        if ($clientid) {
+            $key = $DB->get_field('local_oauth2_public_key', 'public_key', ['client_id' => $clientid]);
+            if ($key) {
+                return $key;
+            }
+        }
+
+        // Fall back to default key (empty client_id).
+        return $DB->get_field('local_oauth2_public_key', 'public_key', ['client_id' => '']);
     }
 
     /**
@@ -700,8 +829,16 @@ class moodle_oauth_storage implements
     public function getPrivateKey($clientid = null) {
         global $DB;
 
-        return $DB->get_field_select('local_oauth2_jwt', 'private_key', 'client_id = :client_id OR client_id IS NULL',
-            ['client_id' => $clientid], 'client_id IS NOT NULL DESC');
+        // First try to get client-specific key, then fall back to default (empty string).
+        if ($clientid) {
+            $key = $DB->get_field('local_oauth2_public_key', 'private_key', ['client_id' => $clientid]);
+            if ($key) {
+                return $key;
+            }
+        }
+
+        // Fall back to default key (empty client_id).
+        return $DB->get_field('local_oauth2_public_key', 'private_key', ['client_id' => '']);
     }
 
     /**
@@ -713,11 +850,16 @@ class moodle_oauth_storage implements
     public function getEncryptionAlgorithm($clientid = null) {
         global $DB;
 
-        if ($alg = $DB->get_field_select('local_oauth2_public_key', 'encryption_algorithm',
-            'client_id = :client_id OR client_id IS NULL', ['client_id' => $clientid], 'client_id IS NOT NULL DESC')) {
-            return $alg;
-        } else {
-            return 'RS256';
+        // First try to get client-specific algorithm, then fall back to default (empty string).
+        if ($clientid) {
+            $alg = $DB->get_field('local_oauth2_public_key', 'encryption_algorithm', ['client_id' => $clientid]);
+            if ($alg) {
+                return $alg;
+            }
         }
+
+        // Fall back to default key (empty client_id).
+        $alg = $DB->get_field('local_oauth2_public_key', 'encryption_algorithm', ['client_id' => '']);
+        return $alg ? $alg : 'RS256';
     }
 }

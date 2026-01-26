@@ -62,6 +62,157 @@ If the request is successful, the response will contain a new access token and a
    •	Replace the old refresh_token with the new one provided in the response.
    •	If the refresh_token itself expires, the user must authenticate again to obtain new credentials.
 
+## How to get user information (UserInfo endpoint)
+
+The plugin provides an OpenID Connect UserInfo endpoint that returns claims about the authenticated user.
+
+1. Endpoint
+   Send a GET or POST request to: `http://moodledomain.com/local/oauth2/userinfo.php`
+
+2. Request Headers
+   Include the access token in the Authorization header:
+   ```
+   Authorization: Bearer {access_token}
+   ```
+
+3. **Important: Requesting the openid Scope**
+
+   To use the UserInfo endpoint, you MUST include the `openid` scope when requesting the access token:
+
+   When redirecting users for authorization:
+   ```
+   http://moodledomain.com/local/oauth2/login.php?client_id=EXAMPLE&response_type=code&scope=openid profile email
+   ```
+
+   When exchanging the authorization code for tokens:
+   ```json
+   {
+       "code": "55c057549f29c428066cbbd67ca6b17099cb1a9e",
+       "client_id": "EXAMPLE",
+       "client_secret": "codeGivenAfterTheFormWasFilled",
+       "grant_type": "authorization_code",
+       "scope": "openid profile email"
+   }
+   ```
+
+4. Response
+   If the request is successful and the access token has the 'openid' scope, the response will contain user claims:
+   ```json
+   {
+       "sub": "123",
+       "name": "John Doe",
+       "email": "john.doe@example.com",
+       "email_verified": true,
+       "given_name": "John",
+       "family_name": "Doe",
+       "picture": "https://moodledomain.com/pluginfile.php/..."
+   }
+   ```
+
+5. Requirements
+   - The access token must be valid and not expired
+   - The access token MUST have been issued with the 'openid' scope
+   - The user account associated with the token must still exist and be active
+
+6. Available Scopes
+   The plugin supports the following OpenID Connect scopes:
+   - `openid` (required) - Returns the 'sub' claim with the user ID
+   - `profile` - Returns profile claims (name, given_name, family_name, etc.)
+   - `email` - Returns email and email_verified claims
+   - `address` - Returns address-related claims
+   - `phone` - Returns phone number claims
+
+   ### Detailed Claim Mapping
+
+   | Scope | Specific Claims Returned | Moodle Field Source |
+   |-------|-------------------------|---------------------|
+   | `openid` (required) | `sub` | User ID (always returned) |
+   | `profile` | `name` | Full name (firstname + lastname) |
+   | | `given_name` | firstname |
+   | | `family_name` | lastname |
+   | | `middle_name` | middlename |
+   | | `nickname` | alternatename |
+   | | `preferred_username` | username |
+   | | `profile` | Profile URL |
+   | | `picture` | Profile picture URL |
+   | | `website` | url |
+   | | `gender` | Not available in Moodle (returns null) |
+   | | `birthdate` | Not available in Moodle (returns null) |
+   | | `zoneinfo` | timezone |
+   | | `locale` | lang |
+   | | `updated_at` | timemodified (timestamp) |
+   | `email` | `email` | email |
+   | | `email_verified` | Based on emailstop field |
+   | `address` | `formatted` | Limited address data |
+   | | `street_address` | Limited address data |
+   | | `locality` | city |
+   | | `region` | Limited address data |
+   | | `postal_code` | Limited address data |
+   | | `country` | country |
+   | `phone` | `phone_number` | phone1 or phone2 |
+   | | `phone_number_verified` | Always false (Moodle doesn't verify phones) |
+
+   **Note:** Some OpenID Connect standard claims (gender, birthdate) are not available in standard Moodle user fields and will return null.
+
+   ### Example Responses by Scope
+
+   **Minimal (openid only):**
+   ```json
+   {
+       "sub": "2"
+   }
+   ```
+
+   **Common (openid + profile + email):**
+   ```json
+   {
+       "sub": "2",
+       "name": "John Doe",
+       "given_name": "John",
+       "family_name": "Doe",
+       "preferred_username": "johndoe",
+       "profile": "https://moodledomain.com/user/profile.php?id=2",
+       "picture": "https://moodledomain.com/theme/image.php/boost/core/1769426826/u/f1",
+       "locale": "en",
+       "zoneinfo": "99",
+       "updated_at": 1754660588,
+       "email": "john.doe@example.com",
+       "email_verified": true
+   }
+   ```
+
+   **Full (all scopes):**
+   ```json
+   {
+       "sub": "2",
+       "name": "John Doe",
+       "given_name": "John",
+       "family_name": "Doe",
+       "middle_name": "",
+       "nickname": "",
+       "preferred_username": "johndoe",
+       "profile": "https://moodledomain.com/user/profile.php?id=2",
+       "picture": "https://moodledomain.com/theme/image.php/boost/core/1769426826/u/f1",
+       "website": null,
+       "gender": null,
+       "birthdate": null,
+       "zoneinfo": "99",
+       "locale": "en",
+       "updated_at": 1754660588,
+       "email": "john.doe@example.com",
+       "email_verified": true,
+       "phone_number": "+1234567890",
+       "phone_number_verified": false
+   }
+   ```
+
+7. Implementation Notes
+   - The 'sub' (subject) claim is always returned and represents the Moodle user ID
+   - Available claims depend on the scopes requested during authorization
+   - This endpoint follows the OpenID Connect UserInfo specification
+   - If you get an "insufficient_scope" error, ensure you requested the 'openid' scope when obtaining the access token
+   - **Best practice:** Request `openid profile email` for most applications
+
 ## Contributors
 Apart from people in this repository, the plugin has been created based on the [local_oauth project] (https://github.com/projectestac/moodle-local_oauth) with the following contributors:
 

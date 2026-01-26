@@ -15,40 +15,40 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * OAuth authentication token endpoint.
+ * OAuth2 UserInfo endpoint.
  *
- * @package local_oauth2
- * @author Pau Ferrer Ocaña <pferre22@xtec.cat>
- * @author Lai Wei <lai.wei@enovation.ie>
- * @author Dorel Manolescu <dorel.manolescu@enovation.ie>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @copyright (C) 2025 Enovation Solutions
+ * This endpoint returns OpenID Connect UserInfo claims about the authenticated user.
+ * It requires a valid access token with the 'openid' scope.
+ *
+ * @package    local_oauth2
+ * @author     Lai Wei <lai.wei@enovation.ie>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  (C) 2026 Enovation Solutions
  */
 
 use core\session\manager;
 use OAuth2\Request;
+use OAuth2\Response;
 
-// phpcs:ignore moodle.Files.RequireLogin.Missing -- This file is token endpoint, no need to require login.
+// phpcs:ignore moodle.Files.RequireLogin.Missing -- This is an OAuth2 endpoint, no login required.
 require_once(__DIR__ . '/../../config.php');
 
 // Set page context for API endpoint.
 $PAGE->set_context(context_system::instance());
-$PAGE->set_url('/local/oauth2/token.php');
+$PAGE->set_url('/local/oauth2/userinfo.php');
 
+// Close the session to prevent session locking.
 manager::write_close();
 
+// Get the OAuth2 server instance.
 $server = local_oauth2\utils::get_oauth_server();
 
+// Create request and response objects.
 $request = Request::createFromGlobals();
-$response = new OAuth2\Response();
+$response = new Response();
 
-// Debug: log the request details.
-debugging('OAuth2 Request scope: ' . $request->request('scope'), DEBUG_DEVELOPER);
-debugging('OAuth2 Request grant_type: ' . $request->request('grant_type'), DEBUG_DEVELOPER);
+// Handle the UserInfo request.
+$server->handleUserInfoRequest($request, $response);
 
-$server->handleTokenRequest($request, $response);
-
-// Debug: log the response details.
-debugging('OAuth2 Response: ' . $response->getStatusCode() . ' - ' . json_encode($response->getParameters()), DEBUG_DEVELOPER);
-
+// Send the response.
 $response->send();

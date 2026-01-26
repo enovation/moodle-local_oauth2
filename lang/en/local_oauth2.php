@@ -113,6 +113,17 @@ $string['settings_access_token_lifetime_desc'] = 'The period of time that the ac
 $string['settings_refresh_token_lifetime'] = 'Refresh token lifetime';
 $string['settings_refresh_token_lifetime_desc'] = 'The period of time that the refresh token is valid for';
 
+// OAuth endpoints.
+$string['oauth_userinfo_endpoint'] = 'UserInfo endpoint';
+$string['oauth_userinfo_endpoint_desc'] = 'Returns OpenID Connect UserInfo claims about the authenticated user. Requires a valid access token with the openid scope.';
+
+// OAuth scopes.
+$string['oauth_scope_openid'] = 'OpenID authentication';
+$string['oauth_scope_profile'] = 'Profile information (name, picture, etc.)';
+$string['oauth_scope_email'] = 'Email address';
+$string['oauth_scope_address'] = 'Address information';
+$string['oauth_scope_phone'] = 'Phone number';
+
 // OAuth client configuration.
 $string['oauth_auth_question'] = 'Do you want to authorize application <b>{$a}</b> to access your Moodle account?</br>';
 $string['oauth_scope_list'] = 'The application is to access the following data: ';
