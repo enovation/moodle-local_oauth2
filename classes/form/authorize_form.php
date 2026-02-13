@@ -54,10 +54,18 @@ class authorize_form extends moodleform {
         if (!empty($scope)) {
             $scopes = explode(' ', $scope);
             $scopetext .= html_writer::start_tag('ul');
-            foreach ($scopes as $scope) {
-                $scopetext .= html_writer::start_tag('li') . $scope . html_writer::end_tag('li');
+            foreach ($scopes as $scopename) {
+                // Try to get a human-readable description for the scope.
+                $scopekey = 'oauth_scope_' . $scopename;
+                if (get_string_manager()->string_exists($scopekey, 'local_oauth2')) {
+                    $scopedescription = get_string($scopekey, 'local_oauth2');
+                } else {
+                    // Fall back to the raw scope name if no translation exists.
+                    $scopedescription = $scopename;
+                }
+                $scopetext .= html_writer::start_tag('li') . $scopedescription . html_writer::end_tag('li');
             }
-            $scopetext .= html_writer::end_tag('li');
+            $scopetext .= html_writer::end_tag('ul');
         } else {
             $scopetext .= get_string('oauth_scope_login', 'local_oauth2');
         }
