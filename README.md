@@ -213,6 +213,35 @@ The plugin provides an OpenID Connect UserInfo endpoint that returns claims abou
    - If you get an "insufficient_scope" error, ensure you requested the 'openid' scope when obtaining the access token
    - **Best practice:** Request `openid profile email` for most applications
 
+## Custom Scopes
+
+The plugin supports custom scopes beyond the standard OpenID Connect scopes. The following custom scopes are included for Microsoft 365 Copilot integration:
+
+- `teacher.read` - Read teacher information
+- `teacher.write` - Modify teacher information
+- `student.read` - Read student information
+- `student.write` - Modify student information
+
+### Adding Custom Scope Descriptions
+
+To add human-readable descriptions for your own custom scopes:
+
+1. Edit `local/oauth2/lang/en/local_oauth2.php`
+2. Add language strings in the format `oauth_scope_<scopename>`:
+
+```php
+// Custom scopes.
+$string['oauth_scope_mycustom.read'] = 'Read custom data';
+$string['oauth_scope_mycustom.write'] = 'Modify custom data';
+```
+
+3. Clear Moodle caches:
+```bash
+php admin/cli/purge_caches.php
+```
+
+The authorization consent screen will automatically display these descriptions when users authorize your application.
+
 ## Contributors
 Apart from people in this repository, the plugin has been created based on the [local_oauth project] (https://github.com/projectestac/moodle-local_oauth) with the following contributors:
 

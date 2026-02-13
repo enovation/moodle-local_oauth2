@@ -124,6 +124,12 @@ $string['oauth_scope_email'] = 'Email address';
 $string['oauth_scope_address'] = 'Address information';
 $string['oauth_scope_phone'] = 'Phone number';
 
+// Custom scopes for Microsoft 365 Copilot integration.
+$string['oauth_scope_teacher.read'] = 'Read teacher information';
+$string['oauth_scope_teacher.write'] = 'Modify teacher information';
+$string['oauth_scope_student.read'] = 'Read student information';
+$string['oauth_scope_student.write'] = 'Modify student information';
+
 // OAuth client configuration.
 $string['oauth_auth_question'] = 'Do you want to authorize application <b>{$a}</b> to access your Moodle account?</br>';
 $string['oauth_scope_list'] = 'The application is to access the following data: ';
