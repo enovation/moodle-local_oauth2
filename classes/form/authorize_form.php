@@ -38,7 +38,6 @@ require_once($CFG->libdir . '/formslib.php');
  * Authorize form.
  */
 class authorize_form extends moodleform {
-
     /**
      * Form definition.
      */

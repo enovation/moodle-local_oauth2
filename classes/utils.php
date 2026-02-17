@@ -154,8 +154,10 @@ class utils {
     public static function is_scope_authorized_by_user($userid, $clientid, $scope = 'login'): bool {
         global $DB;
 
-        return $DB->record_exists('local_oauth2_user_auth_scope',
-            ['client_id' => $clientid, 'scope' => $scope, 'user_id' => $userid]);
+        return $DB->record_exists(
+            'local_oauth2_user_auth_scope',
+            ['client_id' => $clientid, 'scope' => $scope, 'user_id' => $userid]
+        );
     }
 
     /**

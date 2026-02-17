@@ -53,6 +53,7 @@ switch ($action) {
             break;
         }
         $viewtable = false;
+        // Fall through.
 
     case 'add':
         $form = new oauth_client_form();
@@ -129,9 +130,11 @@ switch ($action) {
             }
 
             $viewtable = false;
-            echo $OUTPUT->confirm(get_string('delete_oauth_client_confirm', 'local_oauth2'),
+            echo $OUTPUT->confirm(
+                get_string('delete_oauth_client_confirm', 'local_oauth2'),
                 new moodle_url('/local/oauth2/manage_oauth_clients.php', ['action' => 'delete', 'id' => $id, 'confirm' => 1]),
-                new moodle_url('/local/oauth2/manage_oauth_clients.php'));
+                new moodle_url('/local/oauth2/manage_oauth_clients.php')
+            );
         } else {
             if (!$DB->delete_records('local_oauth2_client', ['id' => $id])) {
                 throw new moodle_exception('error_deleting_oauth_client', 'local_oauth2');
@@ -150,8 +153,13 @@ switch ($action) {
 
 if ($viewtable) {
     // Button to add OAuth client.
-    echo html_writer::tag('p', html_writer::link(new moodle_url('/local/oauth2/manage_oauth_clients.php', ['action' => 'add']),
-        get_string('oauth_add_client', 'local_oauth2')));
+    echo html_writer::tag(
+        'p',
+        html_writer::link(
+            new moodle_url('/local/oauth2/manage_oauth_clients.php', ['action' => 'add']),
+            get_string('oauth_add_client', 'local_oauth2')
+        )
+    );
 
     // Display OAuth clients table.
     $table = new oauth_clients_table();
