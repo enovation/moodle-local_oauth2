@@ -47,17 +47,16 @@ use stdClass;
  * Class moodle_oauth_storage.
  */
 class moodle_oauth_storage implements
-    AuthorizationCodeInterface,
     AccessTokenInterface,
+    AuthorizationCodeInterface,
     ClientCredentialsInterface,
-    UserCredentialsInterface,
-    RefreshTokenInterface,
     JwtBearerInterface,
-    ScopeInterface,
+    OpenIDAuthorizationCodeInterface,
     PublicKeyInterface,
+    RefreshTokenInterface,
+    ScopeInterface,
     UserClaimsInterface,
-    OpenIDAuthorizationCodeInterface {
-
+    UserCredentialsInterface {
     /**
      * Valid OpenID Connect scopes.
      */
@@ -66,7 +65,8 @@ class moodle_oauth_storage implements
     /**
      * OpenID Connect profile claim values mapped to Moodle user fields.
      */
-    const PROFILE_CLAIM_VALUES = 'name family_name given_name middle_name nickname preferred_username profile picture website gender birthdate zoneinfo locale updated_at';
+    const PROFILE_CLAIM_VALUES = 'name family_name given_name middle_name nickname preferred_username profile picture website ' .
+        'gender birthdate zoneinfo locale updated_at';
 
     /**
      * OpenID Connect email claim values mapped to Moodle user fields.
@@ -305,8 +305,17 @@ class moodle_oauth_storage implements
      * @param string|null $codechallengemethod
      * @return bool
      */
-    public function setAuthorizationCode($code, $clientid, $userid, $redirecturi, $expires, $scope = null, $idtoken = null,
-        $codechallenge = null, $codechallengemethod = null) {
+    public function setAuthorizationCode(
+        $code,
+        $clientid,
+        $userid,
+        $redirecturi,
+        $expires,
+        $scope = null,
+        $idtoken = null,
+        $codechallenge = null,
+        $codechallengemethod = null
+    ) {
         global $DB;
 
         if (func_num_args() > 6) {
@@ -354,8 +363,17 @@ class moodle_oauth_storage implements
      * @param string|null $codechallengemethod
      * @return bool
      */
-    private function setAuthorizationCodeWithIdToken($code, $clientid, $userid, $redirecturi, $expires, $scope = null,
-        $idtoken = null, $codechallenge = null, $codechallengemethod = null) {
+    private function setAuthorizationCodeWithIdToken(
+        $code,
+        $clientid,
+        $userid,
+        $redirecturi,
+        $expires,
+        $scope = null,
+        $idtoken = null,
+        $codechallenge = null,
+        $codechallengemethod = null
+    ) {
         global $DB;
 
         if ($authcode = $DB->get_record('local_oauth2_authorization_code', ['authorization_code' => $code])) {
@@ -731,8 +749,7 @@ class moodle_oauth_storage implements
     public function getDefaultScope($clientid = null) {
         global $DB;
 
-        if ($scope = $DB->get_fieldset_select('local_oauth2_scope', 'scope', 'is_default = :is_default',
-            ['is_default' => true])) {
+        if ($scope = $DB->get_fieldset_select('local_oauth2_scope', 'scope', 'is_default = :is_default', ['is_default' => true])) {
             return implode(' ', $scope);
         }
 
