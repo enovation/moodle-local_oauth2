@@ -34,7 +34,6 @@ use local_oauth2\event\access_token_deleted;
  * Scheduled task to clean up expired auth codes and tokens.
  */
 class cleanup extends scheduled_task {
-
     /**
      * Get a descriptive name for this task.
      *
@@ -54,8 +53,11 @@ class cleanup extends scheduled_task {
         $time = time();
 
         // Delete expired auth codes.
-        $expiredauthcodescount = $DB->count_records_select('local_oauth2_authorization_code', 'expires < :time',
-            ['time' => $time]);
+        $expiredauthcodescount = $DB->count_records_select(
+            'local_oauth2_authorization_code',
+            'expires < :time',
+            ['time' => $time]
+        );
         if ($expiredauthcodescount > 0) {
             $DB->delete_records_select('local_oauth2_authorization_code', 'expires < :time', ['time' => $time]);
             mtrace("Deleted " . $expiredauthcodescount . " expired auth codes.");
@@ -64,8 +66,13 @@ class cleanup extends scheduled_task {
         }
 
         // Delete expired access tokens.
-        $accesstokenrecordset = $DB->get_recordset_select('local_oauth2_access_token', 'expires < :time', ['time' => $time], '',
-            'id, expires');
+        $accesstokenrecordset = $DB->get_recordset_select(
+            'local_oauth2_access_token',
+            'expires < :time',
+            ['time' => $time],
+            '',
+            'id, expires'
+        );
         $accesstokensdeleted = 0;
         foreach ($accesstokenrecordset as $accesstoken) {
             $DB->delete_records('local_oauth2_access_token', ['id' => $accesstoken->id]);
@@ -89,8 +96,11 @@ class cleanup extends scheduled_task {
         }
 
         // Delete expired refresh tokens.
-        $expiredrefreshtokenscount = $DB->count_records_select('local_oauth2_refresh_token', 'expires < :time',
-            ['time' => $time]);
+        $expiredrefreshtokenscount = $DB->count_records_select(
+            'local_oauth2_refresh_token',
+            'expires < :time',
+            ['time' => $time]
+        );
         if ($expiredrefreshtokenscount > 0) {
             $DB->delete_records_select('local_oauth2_refresh_token', 'expires < :time', ['time' => $time]);
             mtrace("Deleted " . $expiredrefreshtokenscount . " expired refresh tokens.");

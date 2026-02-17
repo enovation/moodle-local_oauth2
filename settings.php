@@ -32,23 +32,39 @@ if ($hassiteconfig) {
     $ADMIN->add('server', new admin_category('local_oauth2', get_string('pluginname', 'local_oauth2')));
 
     // Add OAuth provider settings to the "Server" section.
-    $ADMIN->add('local_oauth2',
-        new admin_externalpage('local_oauth2_manage_oauth_clients', get_string('manage_oauth_clients', 'local_oauth2'),
+    $ADMIN->add(
+        'local_oauth2',
+        new admin_externalpage(
+            'local_oauth2_manage_oauth_clients',
+            get_string('manage_oauth_clients', 'local_oauth2'),
             new moodle_url('/local/oauth2/manage_oauth_clients.php'),
             'local/oauth2:manage_oauth_clients'
-        ));
+        )
+    );
 
     // Add plugin configuration page.
     $settings = new admin_settingpage('local_oauth2_token_lifetime', get_string('settings_token_settings', 'local_oauth2'));
     $ADMIN->add('local_oauth2', $settings);
 
     // Access token timeout period.
-    $settings->add(new admin_setting_configduration('local_oauth2/access_token_lifetime',
-        get_string('settings_access_token_lifetime', 'local_oauth2'),
-        get_string('settings_access_token_lifetime_desc', 'local_oauth2'), HOURSECS, HOURSECS));
+    $settings->add(
+        new admin_setting_configduration(
+            'local_oauth2/access_token_lifetime',
+            get_string('settings_access_token_lifetime', 'local_oauth2'),
+            get_string('settings_access_token_lifetime_desc', 'local_oauth2'),
+            HOURSECS,
+            HOURSECS
+        )
+    );
 
     // Refresh token timeout period.
-    $settings->add(new admin_setting_configduration('local_oauth2/refresh_token_lifetime',
-        get_string('settings_refresh_token_lifetime', 'local_oauth2'),
-        get_string('settings_refresh_token_lifetime_desc', 'local_oauth2'), WEEKSECS, WEEKSECS));
+    $settings->add(
+        new admin_setting_configduration(
+            'local_oauth2/refresh_token_lifetime',
+            get_string('settings_refresh_token_lifetime', 'local_oauth2'),
+            get_string('settings_refresh_token_lifetime_desc', 'local_oauth2'),
+            WEEKSECS,
+            WEEKSECS
+        )
+    );
 }

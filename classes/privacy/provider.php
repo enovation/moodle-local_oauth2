@@ -37,9 +37,8 @@ use core_privacy\local\request\writer;
  */
 class provider implements
     \core_privacy\local\metadata\provider,
-    \core_privacy\local\request\plugin\provider,
-    \core_privacy\local\request\core_userlist_provider {
-
+    \core_privacy\local\request\core_userlist_provider,
+    \core_privacy\local\request\plugin\provider {
     /** @var string[] plugin tables that contain user data. */
     const TABLES = [
         'local_oauth2_user_auth_scope',
@@ -56,16 +55,19 @@ class provider implements
      */
     public static function get_metadata(collection $collection): collection {
         // Add metadata for the local_oauth2_user_auth_scope table.
-        $collection->add_database_table('local_oauth2_user_auth_scope',
+        $collection->add_database_table(
+            'local_oauth2_user_auth_scope',
             [
                 'user_id' => 'privacy:metadata:local_oauth2_user_auth_scope:user_id',
                 'client_id' => 'privacy:metadata:local_oauth2_user_auth_scope:client_id',
                 'scope' => 'privacy:metadata:local_oauth2_user_auth_scope:scope',
             ],
-            'privacy:metadata:local_oauth2_user_auth_scope');
+            'privacy:metadata:local_oauth2_user_auth_scope'
+        );
 
         // Add metadata for the local_oauth2_access_token table.
-        $collection->add_database_table('local_oauth2_access_token',
+        $collection->add_database_table(
+            'local_oauth2_access_token',
             [
                 'user_id' => 'privacy:metadata:local_oauth2_access_token:user_id',
                 'client_id' => 'privacy:metadata:local_oauth2_access_token:client_id',
@@ -73,10 +75,12 @@ class provider implements
                 'access_token' => 'privacy:metadata:local_oauth2_access_token:access_token',
                 'expires' => 'privacy:metadata:local_oauth2_access_token:expires',
             ],
-            'privacy:metadata:local_oauth2_access_token');
+            'privacy:metadata:local_oauth2_access_token'
+        );
 
         // Add metadata for the local_oauth2_authorization_code table.
-        $collection->add_database_table('local_oauth2_authorization_code',
+        $collection->add_database_table(
+            'local_oauth2_authorization_code',
             [
                 'user_id' => 'privacy:metadata:local_oauth2_authorization_code:user_id',
                 'authorization_code' => 'privacy:metadata:local_oauth2_authorization_code:authorization_code',
@@ -86,10 +90,12 @@ class provider implements
                 'scope' => 'privacy:metadata:local_oauth2_authorization_code:scope',
                 'id_token' => 'privacy:metadata:local_oauth2_authorization_code:id_token',
             ],
-            'privacy:metadata:local_oauth2_authorization_code');
+            'privacy:metadata:local_oauth2_authorization_code'
+        );
 
         // Add metadata for the local_oauth2_refresh_token table.
-        $collection->add_database_table('local_oauth2_refresh_token',
+        $collection->add_database_table(
+            'local_oauth2_refresh_token',
             [
                 'user_id' => 'privacy:metadata:local_oauth2_refresh_token:user_id',
                 'refresh_token' => 'privacy:metadata:local_oauth2_refresh_token:refresh_token',
@@ -97,7 +103,8 @@ class provider implements
                 'expires' => 'privacy:metadata:local_oauth2_refresh_token:expires',
                 'scope' => 'privacy:metadata:local_oauth2_refresh_token:scope',
             ],
-            'privacy:metadata:local_oauth2_refresh_token');
+            'privacy:metadata:local_oauth2_refresh_token'
+        );
 
         return $collection;
     }
