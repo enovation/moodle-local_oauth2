@@ -51,7 +51,7 @@
                 <FIELD NAME="redirect_uri" TYPE="char" LENGTH="1333" NOTNULL="false" SEQUENCE="false"/>
                 <FIELD NAME="expires" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
                 <FIELD NAME="scope" TYPE="char" LENGTH="1333" NOTNULL="false" SEQUENCE="false"/>
-                <FIELD NAME="id_token" TYPE="char" LENGTH="1000" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="id_token" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
                 <FIELD NAME="code_challenge" TYPE="char" LENGTH="128" NOTNULL="false" SEQUENCE="false"/>
                 <FIELD NAME="code_challenge_method" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false"/>
             </FIELDS>

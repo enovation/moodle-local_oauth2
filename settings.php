@@ -67,4 +67,15 @@ if ($hassiteconfig) {
             WEEKSECS
         )
     );
+
+    // Optional issuer override for reverse proxy or externally published OIDC metadata.
+    $settings->add(
+        new admin_setting_configtext(
+            'local_oauth2/issuer',
+            get_string('settings_issuer', 'local_oauth2'),
+            get_string('settings_issuer_desc', 'local_oauth2'),
+            '',
+            PARAM_URL
+        )
+    );
 }

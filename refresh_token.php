@@ -38,13 +38,9 @@ try {
 
     $server->handleTokenRequest($request, $response)->send();
 } catch (Exception $e) {
-    // phpcs:ignore moodle.security.outputnotprotected.exception -- This is an API endpoint, we need to return the error.
-    // Log the error to Moodle error log if debugging is enabled.
-    if (debugging('', DEBUG_DEVELOPER)) {
-        debugging('OAuth error: ' . $e->getMessage(), DEBUG_DEVELOPER);
-    }
+    debugging('local_oauth2 refresh token error: ' . $e->getMessage(), DEBUG_DEVELOPER);
 
     $response = new Response();
-    $response->setError(500, 'An unexpected error occurred: ' . $e->getMessage());
+    $response->setError(500, 'server_error', 'The server was unable to complete the request.');
     $response->send();
 }

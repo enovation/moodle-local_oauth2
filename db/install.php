@@ -39,6 +39,7 @@ function xmldb_local_oauth2_install() {
         ['scope' => 'openid', 'is_default' => 1],
         ['scope' => 'profile', 'is_default' => 0],
         ['scope' => 'email', 'is_default' => 0],
+        ['scope' => 'offline_access', 'is_default' => 0],
         ['scope' => 'address', 'is_default' => 0],
         ['scope' => 'phone', 'is_default' => 0],
     ];
