@@ -879,4 +879,19 @@ class moodle_oauth_storage implements
         $alg = $DB->get_field('local_oauth2_public_key', 'encryption_algorithm', ['client_id' => '']);
         return $alg ? $alg : 'RS256';
     }
+
+    /**
+     * Get the deterministic key identifier for the signing key associated with a client.
+     *
+     * @param string|null $clientid
+     * @return string|null
+     */
+    public function getKeyId($clientid = null) {
+        $record = utils::get_signing_key_record($clientid);
+        if (!$record) {
+            return null;
+        }
+
+        return utils::get_key_id_from_public_key($record->public_key);
+    }
 }

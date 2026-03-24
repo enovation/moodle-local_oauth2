@@ -112,6 +112,8 @@ $string['settings_access_token_lifetime'] = 'Access token lifetime';
 $string['settings_access_token_lifetime_desc'] = 'The period of time that the access token is valid for';
 $string['settings_refresh_token_lifetime'] = 'Refresh token lifetime';
 $string['settings_refresh_token_lifetime_desc'] = 'The period of time that the refresh token is valid for';
+$string['settings_issuer'] = 'OIDC issuer';
+$string['settings_issuer_desc'] = 'Optional public issuer URL for OpenID Connect metadata and ID tokens. Leave empty to use Moodle\'s $CFG->wwwroot value.';
 
 // OAuth endpoints.
 $string['oauth_userinfo_endpoint'] = 'UserInfo endpoint';
@@ -121,6 +123,7 @@ $string['oauth_userinfo_endpoint_desc'] = 'Returns OpenID Connect UserInfo claim
 $string['oauth_scope_openid'] = 'OpenID authentication';
 $string['oauth_scope_profile'] = 'Profile information (name, picture, etc.)';
 $string['oauth_scope_email'] = 'Email address';
+$string['oauth_scope_offline_access'] = 'Offline access (issue refresh tokens for OpenID Connect clients)';
 $string['oauth_scope_address'] = 'Address information';
 $string['oauth_scope_phone'] = 'Phone number';
 
