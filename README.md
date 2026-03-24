@@ -126,6 +126,7 @@ The plugin provides an OpenID Connect UserInfo endpoint that returns claims abou
    - `openid` (required) - Returns the 'sub' claim with the user ID
    - `profile` - Returns profile claims (name, given_name, family_name, etc.)
    - `email` - Returns email and email_verified claims
+   - `offline_access` - Allows OIDC clients to receive a refresh token during Authorization Code flow
    - `address` - Returns address-related claims
    - `phone` - Returns phone number claims
 
@@ -370,6 +371,37 @@ User authenticates → OAuth2 access token created
 - ✅ Scope-based access: Can map OAuth2 scopes to different web services
 - ✅ Standard compliance: Supports OAuth2 and OpenID Connect flows
 - ✅ Secure: Tokens expire automatically when OAuth2 tokens expire
+
+## OpenID Connect interoperability
+
+The plugin can act as an OpenID Connect provider for clients such as oauth2-proxy.
+
+Implemented endpoints:
+
+- Authorization endpoint: `/local/oauth2/login.php`
+- Token endpoint: `/local/oauth2/token.php`
+- Refresh token endpoint: `/local/oauth2/refresh_token.php`
+- UserInfo endpoint: `/local/oauth2/userinfo.php`
+- JWKS endpoint: `/local/oauth2/jwks.php`
+- Discovery document endpoint: `/local/oauth2/openid_configuration.php`
+
+The plugin issues signed `id_token` values for Authorization Code requests that include the `openid` scope. Tokens are signed with `RS256` and include a deterministic `kid` header that matches the published JWK Set.
+
+### Discovery and standard well-known path
+
+Moodle local plugins cannot directly own the site root `/.well-known/openid-configuration` path. The plugin therefore exposes discovery metadata at `/local/oauth2/openid_configuration.php`.
+
+To support standard OIDC discovery for relying parties such as oauth2-proxy, expose the standard path through your web server or reverse proxy and rewrite it to the plugin endpoint.
+
+Example Nginx rewrite:
+
+```nginx
+location = /.well-known/openid-configuration {
+    rewrite ^ /local/oauth2/openid_configuration.php last;
+}
+```
+
+If you publish discovery through a reverse proxy, ensure the issuer configured in Moodle matches the public issuer URL exactly.
 
 ## Contributors
 Apart from people in this repository, the plugin has been created based on the [local_oauth project] (https://github.com/projectestac/moodle-local_oauth) with the following contributors:
