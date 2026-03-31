@@ -83,31 +83,6 @@ function xmldb_local_oauth2_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024100704, 'local', 'oauth2');
     }
 
-    if ($oldversion < 2026032300) {
-        $defaultscopes = [
-            ['scope' => 'offline_access', 'is_default' => 0],
-        ];
-
-        foreach ($defaultscopes as $scopedata) {
-            if (!$DB->record_exists('local_oauth2_scope', ['scope' => $scopedata['scope']])) {
-                $record = (object) $scopedata;
-                $DB->insert_record('local_oauth2_scope', $record);
-            }
-        }
-
-        upgrade_plugin_savepoint(true, 2026032300, 'local', 'oauth2');
-    }
-
-    if ($oldversion < 2026032301) {
-        $table = new xmldb_table('local_oauth2_authorization_code');
-
-        // Change id_token from CHAR(1000) to TEXT so OIDC code-flow tokens can include standard claims.
-        $field = new xmldb_field('id_token', XMLDB_TYPE_TEXT, null, null, null, null, null, 'scope');
-        $dbman->change_field_type($table, $field);
-
-        upgrade_plugin_savepoint(true, 2026032301, 'local', 'oauth2');
-    }
-
     if ($oldversion < 2024100705) {
         // Change public_key and private_key columns from CHAR to TEXT to accommodate RSA keys.
         $table = new xmldb_table('local_oauth2_public_key');
@@ -150,6 +125,31 @@ function xmldb_local_oauth2_upgrade($oldversion) {
         }
 
         upgrade_plugin_savepoint(true, 2024100705, 'local', 'oauth2');
+    }
+
+    if ($oldversion < 2025041503.01) {
+        $defaultscopes = [
+            ['scope' => 'offline_access', 'is_default' => 0],
+        ];
+
+        foreach ($defaultscopes as $scopedata) {
+            if (!$DB->record_exists('local_oauth2_scope', ['scope' => $scopedata['scope']])) {
+                $record = (object) $scopedata;
+                $DB->insert_record('local_oauth2_scope', $record);
+            }
+        }
+
+        upgrade_plugin_savepoint(true, 2025041503.01, 'local', 'oauth2');
+    }
+
+    if ($oldversion < 2025041503.02) {
+        $table = new xmldb_table('local_oauth2_authorization_code');
+
+        // Change id_token from CHAR(1000) to TEXT so OIDC code-flow tokens can include standard claims.
+        $field = new xmldb_field('id_token', XMLDB_TYPE_TEXT, null, null, null, null, null, 'scope');
+        $dbman->change_field_type($table, $field);
+
+        upgrade_plugin_savepoint(true, 2025041503.02, 'local', 'oauth2');
     }
 
     return true;
