@@ -201,13 +201,33 @@ class utils {
     }
 
     /**
-     * Create a deterministic key identifier from a PEM encoded public key.
+     * Create a key identifier using the RFC 7638 JWK Thumbprint of the public key.
      *
-     * @param string $publickey
+     * The thumbprint is the base64url-encoded SHA-256 hash of the canonical JSON
+     * representation of the required JWK members in lexicographic key order.
+     *
+     * @param string $publickey PEM encoded RSA public key
      * @return string
      */
     public static function get_key_id_from_public_key(string $publickey): string {
-        return self::base64url_encode(hash('sha256', $publickey, true));
+        $resource = openssl_pkey_get_public($publickey);
+        if ($resource === false) {
+            throw new \RuntimeException('Invalid RSA public key');
+        }
+
+        $details = openssl_pkey_get_details($resource);
+        if ($details === false || empty($details['rsa']['n']) || empty($details['rsa']['e'])) {
+            throw new \RuntimeException('Unable to read RSA public key details');
+        }
+
+        // RFC 7638: hash the canonical JWK members in lexicographic order (e, kty, n).
+        $thumbprintinput = json_encode([
+            'e'   => self::base64url_encode($details['rsa']['e']),
+            'kty' => 'RSA',
+            'n'   => self::base64url_encode($details['rsa']['n']),
+        ], JSON_UNESCAPED_SLASHES);
+
+        return self::base64url_encode(hash('sha256', $thumbprintinput, true));
     }
 
     /**
