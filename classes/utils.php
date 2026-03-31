@@ -112,7 +112,7 @@ class utils {
                 'allow_implicit' => false,
                 'enforce_state' => false,
                 'require_exact_redirect_uri' => true,
-                'enforce_pkce' => false,
+                'enforce_pkce' => true,
             ],
             $server->getScopeUtil(),
             $storage
