@@ -19,6 +19,7 @@
  *
  * @package    local_oauth2
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright (C) 2026 Enovation Solutions
  */
 
 namespace local_oauth2\controller;
@@ -38,6 +39,7 @@ class authorize_controller extends openid_authorize_controller {
      */
     protected $userclaimsstorage;
 
+    // phpcs:disable moodle.NamingConventions.ValidVariableName.VariableNameLowerCase
     /**
      * Constructor.
      *
@@ -57,7 +59,11 @@ class authorize_controller extends openid_authorize_controller {
         parent::__construct($clientstorage, $responseTypes, $config, $scopeUtil);
         $this->userclaimsstorage = $userclaimsstorage;
     }
+    // phpcs:enable moodle.NamingConventions.ValidVariableName.VariableNameLowerCase
 
+    // phpcs:disable moodle.NamingConventions.ValidFunctionName.LowercaseMethod
+    // phpcs:disable moodle.NamingConventions.ValidVariableName.VariableNameUnderscore
+    // Both violations are inherited from the external library's base class.
     /**
      * Build authorize parameters and include user claims in auth-code ID tokens.
      *
@@ -72,8 +78,10 @@ class authorize_controller extends openid_authorize_controller {
             return null;
         }
 
-        if ($this->needsIdToken($this->getScope())
-            && $this->getResponseType() == self::RESPONSE_TYPE_AUTHORIZATION_CODE) {
+        if (
+            $this->needsIdToken($this->getScope())
+            && $this->getResponseType() == self::RESPONSE_TYPE_AUTHORIZATION_CODE
+        ) {
             $claims = $this->userclaimsstorage->getUserClaims($user_id, $this->getScope());
             $params['id_token'] = $this->responseTypes['id_token']->createIdToken(
                 $this->getClientId(),
@@ -85,7 +93,10 @@ class authorize_controller extends openid_authorize_controller {
 
         return $params;
     }
+    // phpcs:enable moodle.NamingConventions.ValidFunctionName.LowercaseMethod
+    // phpcs:enable moodle.NamingConventions.ValidVariableName.VariableNameUnderscore
 
+    // phpcs:disable moodle.NamingConventions.ValidFunctionName.LowercaseMethod -- overrides parent method from external library.
     /**
      * Validate authorize requests and require state for OIDC requests.
      *
@@ -117,7 +128,11 @@ class authorize_controller extends openid_authorize_controller {
 
             $codechallengemethod = $request->query('code_challenge_method');
             if (!in_array($codechallengemethod, ['plain', 'S256'], true)) {
-                $response->setError(400, 'missing_code_challenge_method', 'This application requires you specify a PKCE code challenge method');
+                $response->setError(
+                    400,
+                    'missing_code_challenge_method',
+                    'This application requires you specify a PKCE code challenge method'
+                );
                 return false;
             }
         }
@@ -146,4 +161,5 @@ class authorize_controller extends openid_authorize_controller {
 
         return false;
     }
+    // phpcs:enable moodle.NamingConventions.ValidFunctionName.LowercaseMethod
 }

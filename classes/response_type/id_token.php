@@ -20,6 +20,7 @@
  * @package    local_oauth2
  * @author     Microsoft
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright (C) 2026 Enovation Solutions
  */
 
 namespace local_oauth2\response_type;
@@ -30,6 +31,9 @@ use local_oauth2\oidc_jwt;
  * ID token response type that emits kid in JWT headers.
  */
 class id_token extends \OAuth2\OpenID\ResponseType\IdToken {
+    // phpcs:disable moodle.NamingConventions.ValidFunctionName.LowercaseMethod
+    // phpcs:disable moodle.NamingConventions.ValidVariableName.VariableNameUnderscore
+    // Both violations are inherited from the external library's base class.
     /**
      * Encode an ID token and add a kid header when a signing key is available.
      *
@@ -47,4 +51,6 @@ class id_token extends \OAuth2\OpenID\ResponseType\IdToken {
         $jwt = new oidc_jwt();
         return $jwt->encode_with_key_id($token, $privatekey, $algorithm, $kid);
     }
+    // phpcs:enable moodle.NamingConventions.ValidFunctionName.LowercaseMethod
+    // phpcs:enable moodle.NamingConventions.ValidVariableName.VariableNameUnderscore
 }
