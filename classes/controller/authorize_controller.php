@@ -23,6 +23,7 @@
 
 namespace local_oauth2\controller;
 
+use local_oauth2\utils;
 use OAuth2\OpenID\Controller\AuthorizeController as openid_authorize_controller;
 use OAuth2\OpenID\Storage\UserClaimsInterface;
 use OAuth2\ScopeInterface;
@@ -99,6 +100,26 @@ class authorize_controller extends openid_authorize_controller {
     public function validateAuthorizeRequest($request, $response) {
         if (!parent::validateAuthorizeRequest($request, $response)) {
             return false;
+        }
+
+        // Enforce PKCE per-client when the global enforce_pkce flag is disabled.
+        if (utils::is_pkce_required($this->getClientId())) {
+            $codechallenge = $request->query('code_challenge');
+            if (!$codechallenge) {
+                $response->setError(400, 'missing_code_challenge', 'This application requires you provide a PKCE code challenge');
+                return false;
+            }
+
+            if (preg_match('/^[A-Za-z0-9-._~]{43,128}$/', $codechallenge) !== 1) {
+                $response->setError(400, 'invalid_code_challenge', 'The PKCE code challenge supplied is invalid');
+                return false;
+            }
+
+            $codechallengemethod = $request->query('code_challenge_method');
+            if (!in_array($codechallengemethod, ['plain', 'S256'], true)) {
+                $response->setError(400, 'missing_code_challenge_method', 'This application requires you specify a PKCE code challenge method');
+                return false;
+            }
         }
 
         if (!$this->needsIdToken($this->getScope()) || $this->getState()) {
