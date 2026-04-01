@@ -19,11 +19,13 @@
  *
  * @package    local_oauth2
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright (C) 2026 Enovation Solutions
  */
 
 use core\session\manager;
 
-// phpcs:ignore moodle.Files.RequireLogin.Missing -- This is an OAuth2 endpoint, no login required.
+
+// phpcs:ignore moodle.Files.RequireLogin.Missing -- This file is a public OIDC discovery endpoint, no login required.
 require_once(__DIR__ . '/../../config.php');
 
 $PAGE->set_context(context_system::instance());

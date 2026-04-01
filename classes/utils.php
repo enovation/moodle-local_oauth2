@@ -92,7 +92,7 @@ class utils {
         ]);
         $coderesponse = new oidc_authorization_code_response($storage);
 
-        $responseTypes = [
+        $responsetypes = [
             'code' => $coderesponse,
             'id_token' => $idtokenresponse,
             'code id_token' => new oidc_code_id_token_response($coderesponse, $idtokenresponse),
@@ -103,11 +103,11 @@ class utils {
         $server = new Server($storage, [
             'use_openid_connect' => true,
             'issuer' => self::get_issuer(),
-        ], [], $responseTypes);
+        ], [], $responsetypes);
         $server->setConfig('enforce_state', false);
         $server->setAuthorizeController(new oidc_authorize_controller(
             $storage,
-            $responseTypes,
+            $responsetypes,
             [
                 'allow_implicit' => false,
                 'enforce_state' => false,

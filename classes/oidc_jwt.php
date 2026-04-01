@@ -20,6 +20,7 @@
  * @package    local_oauth2
  * @author     Microsoft
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright (C) 2026 Enovation Solutions
  */
 
 namespace local_oauth2;
@@ -52,6 +53,7 @@ class oidc_jwt extends \OAuth2\Encryption\Jwt {
         }
     }
 
+    // phpcs:disable moodle.NamingConventions.ValidFunctionName.LowercaseMethod -- overrides parent method from external library.
     /**
      * Generate a JWT header with an optional kid.
      *
@@ -68,4 +70,5 @@ class oidc_jwt extends \OAuth2\Encryption\Jwt {
 
         return $header;
     }
+    // phpcs:enable moodle.NamingConventions.ValidFunctionName.LowercaseMethod
 }
