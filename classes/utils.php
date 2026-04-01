@@ -74,9 +74,9 @@ class utils {
         // Autoload the required files.
         require_once($CFG->dirroot . '/local/oauth2/vendor/bshaffer/oauth2-server-php/src/OAuth2/Autoloader.php');
         Autoloader::register();
-        require_once(__DIR__ . '/oidc_jwt.php');
-        require_once(__DIR__ . '/response_type/id_token.php');
-        require_once(__DIR__ . '/controller/authorize_controller.php');
+        require_once($CFG->dirroot . '/local/oauth2/classes/oidc_jwt.php');
+        require_once($CFG->dirroot . '/local/oauth2/classes/response_type/id_token.php');
+        require_once($CFG->dirroot . '/local/oauth2/classes/controller/authorize_controller.php');
 
         $storage = new moodle_oauth_storage([]);
 
@@ -434,9 +434,9 @@ class utils {
      * @return bool
      */
     public static function is_local_copilot_installed() {
-        global $DB;
+        global $CFG, $DB;
 
-        $fileexist = file_exists(__DIR__ . '/../../copilot/version.php');
+        $fileexist = file_exists($CFG->dirroot . '/local/copilot/version.php');
         $pluginversion = $DB->get_field('config_plugins', 'value', ['plugin' => 'local_copilot', 'name' => 'version']);
 
         return $fileexist && $pluginversion;
