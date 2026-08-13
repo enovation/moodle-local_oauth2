@@ -1,5 +1,3 @@
-image: moodlehq/moodle-php-apache:8.2   # Defines PHP version image to use.
-
 services:
   - name: selenium/standalone-chrome:3
     alias: behat
@@ -22,7 +20,7 @@ variables:
   COMPOSER_CACHE_DIR: "$CI_PROJECT_DIR/.cache/composer"
   NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/.cache/npm"
   CI_BUILD_DIR: '/tmp/plugin'
-  MOODLE_BRANCH: 'MOODLE_500_STABLE'      # Defines Moodle branch.
+  MOODLE_BRANCH: 'MOODLE_500_STABLE'
   MOODLE_BEHAT_WWWROOT: 'http://localhost:8000'
   MOODLE_BEHAT_WDHOST: 'http://behat:4444/wd/hub'
   MOODLE_START_BEHAT_SERVERS: 'no'
@@ -32,7 +30,8 @@ variables:
 stages:
   - moodle-plugin-ci
 
-.setup: &setup
+.setupandruncheck: &setupandruncheck
+  stage: moodle-plugin-ci
   before_script:
     - mkdir -pv "$CI_BUILD_DIR"
     - cp -ru "$CI_PROJECT_DIR/"* "$CI_BUILD_DIR"
@@ -45,88 +44,42 @@ stages:
     - 'curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer'
     - composer create-project -n --no-dev --no-progress --no-ansi moodlehq/moodle-plugin-ci /opt/mci ^4
     - export PATH="/opt/mci/bin:/opt/mci/vendor/bin:$PATH"
-    - git config --global http.sslVerify false      # Only required if the plugin has dependency.
     - moodle-plugin-ci install --db-host db --db-name moodle
     - '{ php -S 0.0.0.0:8000 -t "$CI_PROJECT_DIR/moodle" >/dev/null 2>&1 & }'
-  script:
-    echo "Setup complete"
+    - TXT_RED="\e[31m"
 
-phplint:
+  script:
+    - errors=()
+    - moodle-plugin-ci phplint || errors+=("phplint")
+    - moodle-plugin-ci phpmd || errors+=("phpmd")
+    - moodle-plugin-ci codechecker --max-warnings 0 || errors+=("codechecker")
+    - moodle-plugin-ci phpdoc --max-warnings 0 || errors+=("phpdoc")
+    - moodle-plugin-ci validate || errors+=("validate")
+    - moodle-plugin-ci savepoints || errors+=("savepoints")
+    - moodle-plugin-ci mustache || errors+=("mustache")
+    - moodle-plugin-ci grunt --max-lint-warnings 0 || errors+=("grunt")
+    - moodle-plugin-ci phpunit || errors+=("phpunit")
+    - moodle-plugin-ci behat --auto-rerun 0 --profile chrome || errors+=("behat")
+    - |-
+      if [ ${#errors[@]} -ne 0 ]; then
+        echo -e "${TXT_RED}Check errors: ${errors[@]}";
+        exit 1;
+      fi
+
+php82:
   tags:
     - docker
-  <<: *setup
-  stage: moodle-plugin-ci
-  script:
-    - moodle-plugin-ci phplint
+  image: moodlehq/moodle-php-apache:8.2
+  <<: *setupandruncheck
 
-phpmd:
+php83:
   tags:
     - docker
-  <<: *setup
-  stage: moodle-plugin-ci
-  script:
-    - moodle-plugin-ci phpmd
+  image: moodlehq/moodle-php-apache:8.3
+  <<: *setupandruncheck
 
-codechecker:
+php84:
   tags:
     - docker
-  <<: *setup
-  stage: moodle-plugin-ci
-  script:
-    - moodle-plugin-ci codechecker --max-warnings 0
-
-phpdoc:
-  tags:
-    - docker
-  <<: *setup
-  stage: moodle-plugin-ci
-  script:
-    - moodle-plugin-ci phpdoc --max-warnings 0
-
-validate:
-  tags:
-    - docker
-  <<: *setup
-  stage: moodle-plugin-ci
-  script:
-    - moodle-plugin-ci validate
-
-savepoints:
-  tags:
-    - docker
-  <<: *setup
-  stage: moodle-plugin-ci
-  script:
-    - moodle-plugin-ci savepoints
-
-mustache:
-  tags:
-    - docker
-  <<: *setup
-  stage: moodle-plugin-ci
-  script:
-    - moodle-plugin-ci mustache
-
-grunt:
-  tags:
-    - docker
-  <<: *setup
-  stage: moodle-plugin-ci
-  script:
-    - moodle-plugin-ci grunt --max-lint-warnings 0
-
-phpunit:
-  tags:
-    - docker
-  <<: *setup
-  stage: moodle-plugin-ci
-  script:
-    - moodle-plugin-ci phpunit
-
-behat:
-  tags:
-    - docker
-  <<: *setup
-  stage: moodle-plugin-ci
-  script:
-    - moodle-plugin-ci behat --auto-rerun 0 --profile chrome
+  image: moodlehq/moodle-php-apache:8.4
+  <<: *setupandruncheck
