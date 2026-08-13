@@ -28,8 +28,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component    = 'local_oauth2';
-$plugin->release      = '5.0.4';
-$plugin->version      = 2025041504;
+$plugin->release      = '5.0.5';
+$plugin->version      = 2025041505;
 $plugin->requires     = 2025041400;
 $plugin->supported    = [500, 500];
 $plugin->maturity     = MATURITY_STABLE;
