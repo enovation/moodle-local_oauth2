@@ -130,6 +130,6 @@ if (isloggedin() && !isguestuser()) {
     $server->handleAuthorizeRequest($request, $response, $isauthorized, $USER->id);
     $response->send();
 } else {
-    $SESSION->wantsurl = $url;
+    $SESSION->wantsurl = $url->out(false);
     redirect(new moodle_url('/login/index.php'));
 }
