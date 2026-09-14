@@ -35,6 +35,7 @@ $clientid = required_param('client_id', PARAM_TEXT);
 $responsetype = required_param('response_type', PARAM_TEXT);
 $scope = optional_param('scope', false, PARAM_TEXT);
 $state = optional_param('state', false, PARAM_TEXT);
+$nonce = optional_param('nonce', false, PARAM_TEXT);
 $codechallenge = optional_param('code_challenge', false, PARAM_TEXT);
 $codechallengemethod = optional_param('code_challenge_method', false, PARAM_ALPHANUMEXT);
 $redirecturi = optional_param('redirect_uri', false, PARAM_URL);
@@ -46,6 +47,10 @@ if ($scope) {
 
 if ($state) {
     $url->param('state', $state);
+}
+
+if ($nonce) {
+    $url->param('nonce', $nonce);
 }
 
 if ($codechallenge) {
@@ -70,6 +75,9 @@ if (isloggedin() && !isguestuser()) {
     // Merge GET and POST parameters for PKCE support.
     // After consent form submission, PKCE params may be in POST.
     $queryparams = $_GET;
+    if (!empty($_POST['nonce'])) {
+        $queryparams['nonce'] = $_POST['nonce'];
+    }
     if (!empty($_POST['code_challenge'])) {
         $queryparams['code_challenge'] = $_POST['code_challenge'];
     }
@@ -109,6 +117,9 @@ if (isloggedin() && !isguestuser()) {
 
     // Pass PKCE parameters to the consent form as hidden fields.
     $formcustomdata = [];
+    if ($nonce) {
+        $formcustomdata['nonce'] = $nonce;
+    }
     if ($codechallenge) {
         $formcustomdata['code_challenge'] = $codechallenge;
     }
