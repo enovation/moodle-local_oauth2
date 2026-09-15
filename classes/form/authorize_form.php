@@ -71,7 +71,7 @@ class authorize_form extends moodleform {
         $mform->addElement('html', $scopetext);
 
         // Add hidden fields for OAuth parameters to preserve them on form submission.
-        if (!empty($this->_customdata['nonce'])) {
+        if (isset($this->_customdata['nonce']) && $this->_customdata['nonce'] !== '') {
             $mform->addElement('hidden', 'nonce', $this->_customdata['nonce']);
             $mform->setType('nonce', PARAM_TEXT);
         }
