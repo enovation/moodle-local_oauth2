@@ -49,7 +49,7 @@ if ($state) {
     $url->param('state', $state);
 }
 
-if ($nonce) {
+if ($nonce !== false) {
     $url->param('nonce', $nonce);
 }
 
@@ -72,11 +72,11 @@ $PAGE->set_pagelayout('login');
 if (isloggedin() && !isguestuser()) {
     $server = local_oauth2\utils::get_oauth_server();
 
-    // Merge GET and POST parameters for PKCE support.
-    // After consent form submission, PKCE params may be in POST.
+    // Merge GET and POST parameters for nonce and PKCE support.
+    // After consent form submission, these params may be in POST.
     $queryparams = $_GET;
-    if (!empty($_POST['nonce'])) {
-        $queryparams['nonce'] = $_POST['nonce'];
+    if ($nonce !== false) {
+        $queryparams['nonce'] = $nonce;
     }
     if (!empty($_POST['code_challenge'])) {
         $queryparams['code_challenge'] = $_POST['code_challenge'];
@@ -115,9 +115,9 @@ if (isloggedin() && !isguestuser()) {
         die();
     }
 
-    // Pass PKCE parameters to the consent form as hidden fields.
+    // Pass nonce and PKCE parameters to the consent form as hidden fields.
     $formcustomdata = [];
-    if ($nonce) {
+    if ($nonce !== false) {
         $formcustomdata['nonce'] = $nonce;
     }
     if ($codechallenge) {
