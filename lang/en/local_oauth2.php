@@ -114,6 +114,8 @@ $string['settings_refresh_token_lifetime'] = 'Refresh token lifetime';
 $string['settings_refresh_token_lifetime_desc'] = 'The period of time that the refresh token is valid for';
 $string['settings_issuer'] = 'OIDC issuer';
 $string['settings_issuer_desc'] = 'Optional public issuer URL for OpenID Connect metadata and ID tokens. Leave empty to use Moodle\'s $CFG->wwwroot value.';
+$string['settings_enable_password_grant'] = 'Enable password grant';
+$string['settings_enable_password_grant_desc'] = 'Allow clients to obtain tokens with the OAuth2 password grant (Resource Owner Password Credentials). Clients receive the user\'s Moodle username and password, and the grant bypasses the consent screen and multi-factor authentication. Disabled by default; only enable it for fully trusted applications. Sites that relied on the password grant before this setting was introduced must enable it after upgrading.';
 
 // OAuth endpoints.
 $string['oauth_userinfo_endpoint'] = 'UserInfo endpoint';
