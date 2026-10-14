@@ -78,4 +78,14 @@ if ($hassiteconfig) {
             PARAM_URL
         )
     );
+
+    // Resource Owner Password Credentials grant, disabled by default.
+    $settings->add(
+        new admin_setting_configcheckbox(
+            'local_oauth2/enable_password_grant',
+            get_string('settings_enable_password_grant', 'local_oauth2'),
+            get_string('settings_enable_password_grant_desc', 'local_oauth2'),
+            0
+        )
+    );
 }
