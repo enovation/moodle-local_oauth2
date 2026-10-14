@@ -3,8 +3,13 @@
 It provides an [OAuth2](https://tools.ietf.org/html/rfc6749 "RFC6749") server so that a user can use its Moodle account to log in to external applications.
 Oauth2 Library has been taken from https://github.com/bshaffer/oauth2-server-php
 
+> **Important: this plugin will be retired.**
+> Moodle 5.3 core now ships with an OAuth 2 server feature that provides the same functionality as this plugin.
+> On Moodle 5.3 and later, use the core feature instead of installing this plugin, unless it's specifically required by a plugin that has not yet been updated to use the core feature.
+> This plugin will be retired in the near future, once the earlier Moodle versions that still depend on it are all out of support.
+
 ## Requirements
-* #### Moodle 5.2 installed (this branch supports Moodle 5.2 only; use the matching `MOODLE_xxx_STABLE` branch for other Moodle versions)
+* #### Moodle 5.3 installed (this branch supports Moodle 5.3 only; use the matching `MOODLE_xxx_STABLE` branch for other Moodle versions)
 * #### Admin account
 
 ## Installation steps
