@@ -98,11 +98,11 @@ class authorize_controller extends openid_authorize_controller {
 
     // phpcs:disable moodle.NamingConventions.ValidFunctionName.LowercaseMethod -- overrides parent method from external library.
     /**
-     * Validate authorize requests and require state for OIDC requests.
+     * Validate authorize requests, including per-client PKCE requirements.
      *
-     * Enforcing state for OpenID Connect code flows avoids silent consented
-     * logins being triggered cross-site for clients that rely on this endpoint
-     * for authentication.
+     * The state parameter is required for every request (see the enforce_state
+     * setting in utils::get_oauth_server()), which avoids silent consented logins being
+     * triggered cross-site.
      *
      * @param \OAuth2\RequestInterface $request
      * @param \OAuth2\ResponseInterface $response
@@ -144,29 +144,7 @@ class authorize_controller extends openid_authorize_controller {
             }
         }
 
-        if (!$this->needsIdToken($this->getScope()) || $this->getState()) {
-            return true;
-        }
-
-        $redirecturi = $this->getRedirectUri();
-        if (empty($redirecturi)) {
-            $clientdetails = $this->clientStorage->getClientDetails($this->getClientId());
-            $redirecturi = $clientdetails['redirect_uri'] ?? null;
-        }
-
-        if ($redirecturi) {
-            $response->setRedirect(
-                $this->config['redirect_status_code'],
-                $redirecturi,
-                null,
-                'invalid_request',
-                'The state parameter is required for OpenID Connect requests'
-            );
-        } else {
-            $response->setError(400, 'invalid_request', 'The state parameter is required for OpenID Connect requests');
-        }
-
-        return false;
+        return true;
     }
     // phpcs:enable moodle.NamingConventions.ValidFunctionName.LowercaseMethod
 }
