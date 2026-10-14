@@ -4,7 +4,7 @@ It provides an [OAuth2](https://tools.ietf.org/html/rfc6749 "RFC6749") server so
 Oauth2 Library has been taken from https://github.com/bshaffer/oauth2-server-php
 
 ## Requirements
-* #### Moodle 4.5 or higher installed
+* #### Moodle 5.2 installed (this branch supports Moodle 5.2 only; use the matching `MOODLE_xxx_STABLE` branch for other Moodle versions)
 * #### Admin account
 
 ## Installation steps
@@ -12,7 +12,7 @@ Oauth2 Library has been taken from https://github.com/bshaffer/oauth2-server-php
 
 2. Extract the files if you downloaded a zip file.
 
-3. Create a folder "oauth2" in the "local" directory of your Moodle installation. Copy the files from the plugin into this folder.
+3. Create a folder "oauth2" in the "public/local" directory of your Moodle installation (Moodle 5.1 and later serve the site from the "public" directory). Copy the files from the plugin into this folder.
 
 4. Login to the site as site administrator.
 
@@ -21,18 +21,32 @@ Oauth2 Library has been taken from https://github.com/bshaffer/oauth2-server-php
 6. Click *Add OAuth client*
 
 7. Fill in the form. Your Client Identifier and Client Secret (which will be given later) will be used for you to authenticate. The Redirect URL must be the URL mapping to your client that will be used.
+   - **Generate client secret:** leave it checked for a confidential client. Uncheck it to create a public client without a secret (for example a single-page or native application). Public clients authenticate to the token endpoint with `client_id` only, so enable *Require PKCE* for them.
+   - **Require PKCE:** when enabled, authorization requests for this client must include a `code_challenge` with `code_challenge_method=S256` (and the token request the matching `code_verifier`). The `plain` method is not supported, and any request that sends a `code_challenge` must use `S256`, even if PKCE is not required for the client.
+   - **Scope:** the scopes the client is allowed to request, separated by a space.
+
+## Plugin settings
+
+Go to *Site Administration > Server > OAuth2 server > Token settings* to configure:
+
+- **Access token lifetime** - how long an access token is valid (default: 1 hour).
+- **Refresh token lifetime** - how long a refresh token is valid (default: 1 week).
+- **Enable password grant** - allow the OAuth2 password grant (disabled by default, see [Password grant](#password-grant)).
+- **OIDC issuer** - optional public issuer URL used in the discovery document and in ID tokens. Leave empty to use `$CFG->wwwroot`.
+
+Expired authorization codes and tokens are removed by the scheduled task *Clean up expired auth codes and tokens*.
 
 ## How to get an access token
 
-1. From your application, redirect the user to this URL: `http://moodledomain.com/local/oauth2/login.php?client_id=EXAMPLE&response_type=code` *(remember to replace the URL domain with the domain of Moodle and replace EXAMPLE with the Client Identifier given in the form.)*
+1. From your application, redirect the user to this URL: `http://moodledomain.com/local/oauth2/login.php?client_id=EXAMPLE&response_type=code&redirect_uri=REDIRECT_URI&state=RANDOM_STATE` *(remember to replace the URL domain with the domain of Moodle and replace EXAMPLE with the Client Identifier given in the form.)* The `state` parameter is required: requests without it are rejected with an `invalid_request` error. Send a random value and verify it when the user is redirected back. When using OpenID Connect, also send a `nonce`, and send a `code_challenge` with `code_challenge_method=S256` if the client requires PKCE.
 
 2. The user must log in to Moodle and authorize your application to use its basic info.
 
 3. If it went all OK, the plugin should redirect the user to something like: `http://yourapplicationdomain.com/foo?code=55c057549f29c428066cbbd67ca6b17099cb1a9e` *(that's a GET request to the Redirect URI given with the code parameter)*
 
-4. Using the code given, your application must send a POST request to `http://moodledomain.com/local/oauth2/token.php`  with the following parameters: `{'code': '55c057549f29c428066cbbd67ca6b17099cb1a9e', 'client_id': 'EXAMPLE', 'client_secret': 'codeGivenAfterTheFormWasFilled', 'grant_type': 'authorization_code', 'scope': '[SCOPES SEPARATED BY COMMA]'}`. 
+4. Using the code given, your application must send a POST request to `http://moodledomain.com/local/oauth2/token.php`  with the following parameters: `{'code': '55c057549f29c428066cbbd67ca6b17099cb1a9e', 'client_id': 'EXAMPLE', 'client_secret': 'codeGivenAfterTheFormWasFilled', 'grant_type': 'authorization_code', 'scope': '[SCOPES SEPARATED BY SPACE]'}`. For public clients omit `client_secret`, and for PKCE add `'code_verifier': '[VERIFIER]'`.
 
-5. If the correct credentials were given, the response should a JSON be like this: `{"access_token":"79d687a0ea4910c6662b2e38116528fdcd65f0d1","expires_in":3600,"token_type":"Bearer","scope":"[SCOPES]","refresh_token":"c1de730eef1b2072b48799000ec7cde4ea6d2af0"}`
+5. If the correct credentials were given, the response is a JSON like this: `{"access_token":"79d687a0ea4910c6662b2e38116528fdcd65f0d1","expires_in":3600,"token_type":"Bearer","scope":"[SCOPES]","refresh_token":"c1de730eef1b2072b48799000ec7cde4ea6d2af0"}`
 
 6. **Using the OAuth2 Access Token:**
    - The OAuth2 `access_token` can be used to access **OAuth2-protected endpoints** like the UserInfo endpoint (`/local/oauth2/userinfo.php`)
@@ -43,6 +57,14 @@ Oauth2 Library has been taken from https://github.com/bshaffer/oauth2-server-php
      3. See the [local_copilot plugin](https://github.com/microsoft/moodle-local_copilot) for a complete example implementation
    - The `refresh_token` is used to get a new access_token when the current one expires
 
+The `expires_in` value follows the *Access token lifetime* setting (1 hour by default).
+
+### Password grant
+
+The Resource Owner Password Credentials grant (`grant_type=password` with `username` and `password`) is **disabled by default**. To enable it, tick *Enable password grant* in *Site Administration > Server > OAuth2 server > Token settings*. When enabled, the discovery document advertises it. It exposes user credentials to the client and bypasses the consent screen and multi-factor authentication, so only use it with fully trusted applications and prefer the authorization code flow.
+
+**Upgrading:** in earlier releases the password grant was always available. Sites that rely on it must enable *Enable password grant* after upgrading, otherwise token requests with `grant_type=password` fail with an `unsupported_grant_type` error.
+
 Note: If testing in Postman, you need to set encoding to `x-www-form-urlencoded` for POST requests.
 
 ## How to use the refresh token
@@ -51,23 +73,23 @@ When the access_token expires, your application must request a new one using the
 
 1. Endpoint
 Send a POST request to: `http://moodledomain.com/local/oauth2/refresh_token.php`  with the following
-2. Request parameters: `{'client_id': 'EXAMPLE', 'client_secret': 'codeGivenAfterTheFormWasFilled', 'grant_type': 'refresh_token', 'refresh_token': 'c1de730eef1b2072b48799000ec7cde4ea6d2af0}`.
-(See step 6 above for details on the refresh token.)
+2. Request parameters: `{'client_id': 'EXAMPLE', 'client_secret': 'codeGivenAfterTheFormWasFilled', 'grant_type': 'refresh_token', 'refresh_token': 'c1de730eef1b2072b48799000ec7cde4ea6d2af0'}`.
+(The refresh token is returned together with the access token, see step 5 of "How to get an access token".)
 
 3. Response
 If the request is successful, the response will contain a new access token and a new refresh token:
 `{
     "access_token": "1703c39b0a9e462e2430a2e53da3299696bdefd5",
-    "expires_in": 10800,
+    "expires_in": 3600,
     "token_type": "Bearer",
-    "scope": "[SCOPES SEPARATED BY COMMA]",
+    "scope": "[SCOPES SEPARATED BY SPACE]",
     "refresh_token": "c3150439e43649595a7b753ee1e99e041ee6aa0a"
 }`.
 
 4. Implementation Notes
-   •	Use the new access_token for API requests.
-   •	Replace the old refresh_token with the new one provided in the response.
-   •	If the refresh_token itself expires, the user must authenticate again to obtain new credentials.
+   - Use the new access_token for API requests.
+   - Replace the old refresh_token with the new one provided in the response.
+   - If the refresh_token itself expires, the user must authenticate again to obtain new credentials.
 
 ## How to get user information (UserInfo endpoint)
 
@@ -366,11 +388,11 @@ User authenticates → OAuth2 access token created
 
 ### Benefits of This Approach
 
-- ✅ Single sign-on: Users authenticate once via OAuth2
-- ✅ Token synchronization: OAuth2 token lifecycle automatically manages web service token
-- ✅ Scope-based access: Can map OAuth2 scopes to different web services
-- ✅ Standard compliance: Supports OAuth2 and OpenID Connect flows
-- ✅ Secure: Tokens expire automatically when OAuth2 tokens expire
+- Single sign-on: Users authenticate once via OAuth2
+- Token synchronization: OAuth2 token lifecycle automatically manages web service token
+- Scope-based access: Can map OAuth2 scopes to different web services
+- Standard compliance: Supports OAuth2 and OpenID Connect flows
+- Secure: Tokens expire automatically when OAuth2 tokens expire
 
 ## OpenID Connect interoperability
 
@@ -384,6 +406,14 @@ Implemented endpoints:
 - UserInfo endpoint: `/local/oauth2/userinfo.php`
 - JWKS endpoint: `/local/oauth2/jwks.php`
 - Discovery document endpoint: `/local/oauth2/openid_configuration.php`
+
+A default RSA signing key pair for all clients is created automatically when the plugin is installed, so no extra step is needed for a normal installation. Use the CLI script below to create keys for a single client, to create the default keys if they are missing (for example if key generation failed during installation because OpenSSL was unavailable), or to rotate existing keys with `--force`:
+
+```bash
+php public/local/oauth2/cli/generate_keys.php [--client-id=<client_id>] [--force]
+```
+
+`--client-id` optionally associates the keys with a single client (default: the default keys used for all clients). Without `--force` the script stops with "Keys already exist" if keys are already present for the selected target. With `--force` the existing keys are replaced, so tokens signed with the old keys can no longer be verified against the published JWK Set.
 
 The plugin issues signed `id_token` values for Authorization Code requests that include the `openid` scope. Tokens are signed with `RS256` and include a deterministic `kid` header that matches the published JWK Set.
 
@@ -404,13 +434,13 @@ location = /.well-known/openid-configuration {
 If you publish discovery through a reverse proxy, ensure the issuer configured in Moodle matches the public issuer URL exactly.
 
 ## Contributors
-Apart from people in this repository, the plugin has been created based on the [local_oauth project] (https://github.com/projectestac/moodle-local_oauth) with the following contributors:
+Apart from people in this repository, the plugin has been created based on the [local_oauth project](https://github.com/projectestac/moodle-local_oauth) with the following contributors:
 
-- [crazyserver] https://github.com/crazyserver
-- [monicagrau] https://github.com/monicagrau
-- [toniginard] https://github.com/toniginard
-- [sarajona] https://github.com/sarjona
-- [lfzawacki] https://github.com/lfzawacki
-- [ignacioabejaro] https://github.com/ignacioabejaro
-- [umerf52] https://github.com/umerf52
+- [crazyserver](https://github.com/crazyserver)
+- [monicagrau](https://github.com/monicagrau)
+- [toniginard](https://github.com/toniginard)
+- [sarjona](https://github.com/sarjona)
+- [lfzawacki](https://github.com/lfzawacki)
+- [ignacioabejaro](https://github.com/ignacioabejaro)
+- [umerf52](https://github.com/umerf52)
 
