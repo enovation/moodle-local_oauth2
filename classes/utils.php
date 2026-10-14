@@ -131,8 +131,10 @@ class utils {
         // Add the "Authorization Code" grant type.
         $server->addGrantType(new oidc_authorization_code_grant($storage));
 
-        // Add the "Password" grant type (Resource Owner Password Credentials).
-        $server->addGrantType(new UserCredentials($storage));
+        // Add the "Password" grant type (Resource Owner Password Credentials) only when explicitly enabled.
+        if (self::is_password_grant_enabled()) {
+            $server->addGrantType(new UserCredentials($storage));
+        }
 
         // Add the "Refresh Token" grant type.
         $server->addGrantType(new RefreshToken($storage, [
@@ -141,6 +143,15 @@ class utils {
         ]));
 
         return $server;
+    }
+
+    /**
+     * Check whether the Resource Owner Password Credentials grant is enabled.
+     *
+     * @return bool
+     */
+    public static function is_password_grant_enabled(): bool {
+        return !empty(get_config('local_oauth2', 'enable_password_grant'));
     }
 
     /**
@@ -330,6 +341,11 @@ class utils {
             'phone_number_verified',
         ];
 
+        $granttypes = ['authorization_code', 'refresh_token'];
+        if (self::is_password_grant_enabled()) {
+            $granttypes[] = 'password';
+        }
+
         return [
             'issuer' => self::get_issuer(),
             'authorization_endpoint' => self::get_endpoint_url('login.php'),
@@ -337,7 +353,7 @@ class utils {
             'userinfo_endpoint' => self::get_endpoint_url('userinfo.php'),
             'jwks_uri' => self::get_endpoint_url('jwks.php'),
             'response_types_supported' => ['code'],
-            'grant_types_supported' => ['authorization_code', 'refresh_token', 'password'],
+            'grant_types_supported' => $granttypes,
             'subject_types_supported' => ['public'],
             'id_token_signing_alg_values_supported' => ['RS256'],
             'token_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post', 'none'],
