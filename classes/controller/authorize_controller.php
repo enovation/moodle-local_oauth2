@@ -113,7 +113,7 @@ class authorize_controller extends openid_authorize_controller {
             return false;
         }
 
-        // Enforce PKCE per-client when the global enforce_pkce flag is disabled.
+        // Enforce PKCE per client, using the registration setting instead of the global enforce_pkce flag.
         if (utils::is_pkce_required($this->getClientId())) {
             $codechallenge = $request->query('code_challenge');
             if (!$codechallenge) {
