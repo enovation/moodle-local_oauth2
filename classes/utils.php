@@ -100,6 +100,7 @@ class utils {
 
         // Pass a storage object or array of storage objects to the OAuth2 server class.
         // Enable OpenID Connect mode to use the AuthorizeController that supports PKCE.
+        // PKCE is enforced per client by the authorize controller, so the global enforce_pkce flag is left off.
         $server = new Server($storage, [
             'use_openid_connect' => true,
             'issuer' => self::get_issuer(),
@@ -112,7 +113,6 @@ class utils {
                 'allow_implicit' => false,
                 'enforce_state' => true,
                 'require_exact_redirect_uri' => true,
-                'enforce_pkce' => false,
             ],
             $server->getScopeUtil(),
             $storage
