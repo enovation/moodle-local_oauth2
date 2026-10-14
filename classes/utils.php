@@ -104,13 +104,13 @@ class utils {
             'use_openid_connect' => true,
             'issuer' => self::get_issuer(),
         ], [], $responsetypes);
-        $server->setConfig('enforce_state', false);
+        $server->setConfig('enforce_state', true);
         $server->setAuthorizeController(new oidc_authorize_controller(
             $storage,
             $responsetypes,
             [
                 'allow_implicit' => false,
-                'enforce_state' => false,
+                'enforce_state' => true,
                 'require_exact_redirect_uri' => true,
                 'enforce_pkce' => false,
             ],
