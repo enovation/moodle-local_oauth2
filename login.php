@@ -97,9 +97,9 @@ if (isloggedin() && !isguestuser()) {
             $response->send();
             die();
         }
-        $reqcodechallengemethod = $request->query('code_challenge_method', 'plain');
-        if (!in_array($reqcodechallengemethod, ['plain', 'S256'])) {
-            $response->setError(400, 'invalid_request', 'Invalid code_challenge_method. Must be "plain" or "S256".');
+        $reqcodechallengemethod = $request->query('code_challenge_method');
+        if ($reqcodechallengemethod !== 'S256') {
+            $response->setError(400, 'invalid_request', 'Invalid or missing code_challenge_method. Must be "S256".');
             $response->send();
             die();
         }

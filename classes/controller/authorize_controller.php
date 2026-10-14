@@ -114,8 +114,9 @@ class authorize_controller extends openid_authorize_controller {
         }
 
         // Enforce PKCE per-client when the global enforce_pkce flag is disabled.
-        if (utils::is_pkce_required($this->getClientId())) {
-            $codechallenge = $request->query('code_challenge');
+        // Any request that supplies a code challenge is validated, even when PKCE is optional for the client.
+        $codechallenge = $request->query('code_challenge');
+        if ($codechallenge || utils::is_pkce_required($this->getClientId())) {
             if (!$codechallenge) {
                 $response->setError(400, 'missing_code_challenge', 'This application requires you provide a PKCE code challenge');
                 return false;
@@ -127,12 +128,18 @@ class authorize_controller extends openid_authorize_controller {
             }
 
             $codechallengemethod = $request->query('code_challenge_method');
-            if (!in_array($codechallengemethod, ['plain', 'S256'], true)) {
+            if (empty($codechallengemethod)) {
                 $response->setError(
                     400,
                     'missing_code_challenge_method',
                     'This application requires you specify a PKCE code challenge method'
                 );
+                return false;
+            }
+
+            // The "plain" method offers no protection against an intercepted authorization request.
+            if ($codechallengemethod !== 'S256') {
+                $response->setError(400, 'invalid_code_challenge_method', 'The PKCE code challenge method must be "S256"');
                 return false;
             }
         }
